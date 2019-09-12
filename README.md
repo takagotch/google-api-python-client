@@ -25,23 +25,38 @@ class TestChannel(unittest.TestCase):
       resource_uri='http://example.com/resource_1')
       
   body = ch.body()
-  self.assertEqual()
-  self.assertEqual()
-  self.assertEqual()
+  self.assertEqual('http://example.org/callback', body['address'])
+  self.assertEqual('myid', body['id'])
+  self.assertEqual('missing', body['id'])
+  self.assertEqual('info', body['params']['extra'])
+  self.assertEqual('the_resource_id', body['resourceId'])
+  self.assertEqual('http://example.com/resource_1', body['resourceUri'])
+  self.assertEqual('web_hook', body['type'])
   
   ch.expiration = 1
   body = ch.body()
-  self.assertEqual()
+  self.assertEqual(1, body.get('expiration', 'missing'))
   
   ch.update({
-  })
+    'resourceId': 'updated_res_id',
+    'resourceUri': 'updated_res_uri',
+    'some_random_parameter': 2,
+    })
   
   body = ch.body()
-  self.assertEqual()
+  self.assertEqual('http://example.org/callback', body['address'])
+  self.assertEqual('myid', body['id'])
+  self.assertEqual(1, body.get('expiration', 'missing'))
+  self.assertEqual('info', body['params']['extra'])
+  self.assertEqual('updated_res_uri', body['resourceId'])
+  self.assertEqual('updated_res_uri', body['resourceUri'])
+  self.assertEqual('web_hook', body['type'])
   
 def test_new_webhook_channel(self):
   ch = channel.new_webhook_channel('http://example.com/callback')
   self.assertEqual(0, ch.expiration)
+  self.assertEqual('http://example.com/callback', ch.address)
+  self.assertEqual(None, ch.params)
   
   ch = channel.new_webhook_channel(
     'http://example.com/callback',
@@ -60,8 +75,8 @@ def test_new_webhook_channel(self):
     expiration=datetime.datetime(1970, 1, 1, second=5, microsecond=1000),
     params={'some':stuff'})
   self.assertEqual(5001, ch.expiration)
-  self.assertEqual()
-  self.assertEqual()
+  self.assertEqual('http://example.com/callback', ch.address)
+  self.assertEqual({'some': 'stuff'}, ch.params)
 
 class TestNotification(unittest.TestCase):
   def test_basic(self):
